@@ -11,6 +11,9 @@ def load_data(positions: str) -> pd.DataFrame:
 
 
     for _, r in df.iterrows():
+
+
+        
         ticker = r["ticker"]      
         bdate  = (r["datetime"])      
         qty    = int(r["quantity"]) 
