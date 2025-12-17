@@ -22,7 +22,7 @@ st.dataframe(table, use_container_width=True)
 
 if "profit($)" in table.columns:
     st.subheader("Summary")
-    st.write(f"Total profit: {table['profit($)'].sum():,.2f}")
+    st.write(f"Total profit: {table['profit($)'].sum():,.2f}$")
 
 st.subheader("Performance Graph")
 

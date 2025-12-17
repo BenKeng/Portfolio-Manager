@@ -20,6 +20,7 @@ def load_data2(positions: str) -> pd.DataFrame:
 
         results.append({
             "ticker": ticker,
+            "datetime": bdate, 
             "profit($)": round(profit, 2),
             "percentage profit(%)": round(percentage_profit, 2),
         })

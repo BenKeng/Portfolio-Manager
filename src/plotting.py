@@ -27,13 +27,13 @@ def plot(positions: str):
         plt.tight_layout()
         return plt.gcf()
     
-def price_history_figure(ticker: str):
+def price_history_figure(ticker: str, buy_date):
     stock = yf.Ticker(ticker)
-    hist = stock.history(period="max", interval="5d")
+    hist = stock.history(start=buy_date, interval="1d")
 
     fig, ax = plt.subplots()
     ax.plot(hist.index, hist["Close"])
-    ax.set_title(f"{ticker} Price History")
+    ax.set_title(f"{ticker} Price History (since buy date)")
     ax.set_xlabel("Time")
     ax.set_ylabel("Price ($)")
     fig.tight_layout()
