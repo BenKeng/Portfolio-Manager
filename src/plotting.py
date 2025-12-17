@@ -2,8 +2,9 @@ import matplotlib.pyplot as plt
 import yfinance as yf
 import pandas as pd
 import datetime
-from data_loader import stock_price
-from analytics import prof_calc
+from src.data_loader import stock_price
+
+
 
 def plot(positions: str):
     df = pd.read_csv(positions, parse_dates = ['datetime'])
@@ -19,9 +20,25 @@ def plot(positions: str):
         stock = yf.Ticker(ticker)
         hist = stock.history(period = 'max', interval= '5d')
         
-
         hist['Close'].plot()
-        plt.xlabel("Date"); plt.ylabel("Price")
-        plt.tight_layout(); plt.show()
 
-plot('config/positions.csv')
+        plt.title(f"{ticker} Price History")
+        plt.xlabel("Time(Years)"); plt.ylabel("Price($)")
+        plt.tight_layout()
+        return plt.gcf()
+    
+def price_history_figure(ticker: str):
+    stock = yf.Ticker(ticker)
+    hist = stock.history(period="max", interval="5d")
+
+    fig, ax = plt.subplots()
+    ax.plot(hist.index, hist["Close"])
+    ax.set_title(f"{ticker} Price History")
+    ax.set_xlabel("Time")
+    ax.set_ylabel("Price ($)")
+    fig.tight_layout()
+
+    return fig
+
+if __name__ == "__main__":  
+    plot('config/positions.csv')

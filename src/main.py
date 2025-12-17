@@ -1,5 +1,6 @@
 import yfinance as yf
 import pandas as pd
+from analytics import prof_calc
 from data_loader import stock_price
 from data_loader import load_data
 
@@ -13,4 +14,3 @@ from data_loader import load_data
 #if __name__ == "__main__":
 #    run_all()
 
-print(load_data("config/positions.csv"))
