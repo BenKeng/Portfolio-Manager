@@ -10,7 +10,6 @@ def load_data(positions: str) -> pd.DataFrame:
 
     for _, r in df.iterrows():
         
-        
         ticker = r["ticker"]      
         bdate  = (r["datetime"])      
         qty    = int(r["quantity"]) 
@@ -18,7 +17,7 @@ def load_data(positions: str) -> pd.DataFrame:
         current_position[ticker] = c
         buy_position[ticker] = b
         #print(f"{ticker}: current {c:.2f} | buy {b:.2f}")
-    
+        #used for debugging
     return b, c
    
     
@@ -38,4 +37,25 @@ def stock_price(ticker: str, bdate: datetime, quant: int):
     return cprice, bprice
 
 
-print(load_data('config/positions.csv'))
+def load_data_table(positions: str) -> pd.DataFrame:
+    df = pd.read_csv(positions, parse_dates=["datetime"])
+    results = []
+
+    for _, r in df.iterrows():
+        ticker = r["ticker"]
+        bdate = r["datetime"]
+        qty = int(r["quantity"])
+        c, b = stock_price(ticker, bdate, qty)
+
+        results.append({
+            "ticker": ticker,
+            "datetime": bdate,  
+            "quantity": qty,
+            "buy": round(b, 2),
+            "current": round(c, 2),
+        })
+
+    return pd.DataFrame(results)
+
+if __name__ == "__main__":
+    load_data("config/positions.csv")
