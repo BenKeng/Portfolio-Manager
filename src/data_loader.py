@@ -16,8 +16,8 @@ def load_data(positions: str) -> pd.DataFrame:
         c, b = stock_price(ticker, bdate, qty)  
         current_position[ticker] = c
         buy_position[ticker] = b
-        print(f"{ticker}: current {c:.2f} | buy {b:.2f}")
-    
+        #print(f"{ticker}: current {c:.2f} | buy {b:.2f}")
+        #used for debugging
     return b, c
    
     
