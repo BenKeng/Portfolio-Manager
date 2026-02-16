@@ -46,7 +46,7 @@ if use_editor:
     editor_df = st.data_editor(
         pd.DataFrame({
             "ticker": pd.Series(dtype="string"), 
-            "datetime: yyyy-mm-dd": pd.Series(dtype="string"), 
+            "datetime": pd.Series(dtype="string"), 
             "quantity": pd.Series(dtype="int"),
         }),
         num_rows="dynamic",
