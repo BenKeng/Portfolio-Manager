@@ -3,7 +3,7 @@ import pandas as pd
 import tempfile
 from src.analytics import load_data2 as load_data_table  
 from src.plotting import price_history_figure 
-#streamlit run Portfolio-Manager/App.py
+#https://portfolio-program.streamlit.app/
 
 
 # Login
@@ -31,7 +31,6 @@ if not st.session_state["logged_in"]:
 st.title("Dashboard")
 st.write("You are logged in!")
 st.title("Portfolio Manager")
-#simple confirmation messages
 
 # Choose input method
 use_editor = st.toggle("Create a csv file instead of uploading", value=True)
@@ -47,7 +46,7 @@ if use_editor:
     editor_df = st.data_editor(
         pd.DataFrame({
             "ticker": pd.Series(dtype="string"), 
-            "datetime": pd.Series(dtype="string"), 
+            "datetime: yyyy-mm-dd": pd.Series(dtype="string"), 
             "quantity": pd.Series(dtype="int"),
         }),
         num_rows="dynamic",
