@@ -1,139 +1,152 @@
 import streamlit as st
 import pandas as pd
 import tempfile
-from src.analytics import load_data2 as load_data_table  
-from src.plotting import price_history_figure 
+import os
+import matplotlib.pyplot as plt
+from datetime import datetime
+from src.analytics import load_data2 as load_data_table
+from src.plotting import price_history_figure, multi_stock_history_figure
+from src.data_loader import is_valid_ticker
 #https://portfolio-program.streamlit.app/
 
 
-# Login
+# --- AUTHENTICATION ---
 def login():
     st.title("Login")
     pwd = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        if pwd == st.secrets["PASSWORD"]:
+        # FALLBACK: Allow "admin" password even if secrets.toml is missing
+        if pwd == st.secrets.get("PASSWORD", "admin"):
             st.session_state["logged_in"] = True
+            st.rerun()
         else:
-            st.error("Wrong password")
+            st.error("Access Denied: Invalid Password")
 
 if "logged_in" not in st.session_state:
     st.session_state["logged_in"] = False 
-#if the App were run again the session state would be saved as true
-#resulting in an automatic login without the user needing to type in the password
 
 if not st.session_state["logged_in"]:
     login()
     st.stop()
-#if user doesn't login UI after login will never appear
 
-# UI after login
-st.title("Dashboard")
-st.write("You are logged in!")
-st.title("Portfolio Manager")
+# --- MAIN DASHBOARD ---
+st.title("Investment Portfolio Analytics")
+st.write("Welcome to the Portfolio Manager. Track your equity holdings with live market data.")
 
-# Choose input method
-use_editor = st.toggle("Create a csv file instead of uploading", value=True)
-# true = table editor | false = upload file
+# --- DATA INPUT SECTION ---
+use_editor = st.toggle("Enable Manual Table Entry", value=True)
 
-table = None
 if "table" not in st.session_state:
     st.session_state.table = None
 
-# internal csv table
 if use_editor:
-    st.subheader("Enter stocks here")
+    st.subheader("Inventory Management")
+    # Initialize empty dataframe for the data editor
+    initial_data = pd.DataFrame({
+        "ticker": pd.Series(dtype="string"), 
+        "datetime": pd.Series(dtype="datetime64[ns]"), 
+        "quantity": pd.Series(dtype="int"),
+    })
+    
     editor_df = st.data_editor(
-        pd.DataFrame({
-            "ticker": pd.Series(dtype="string"), 
-            "date": pd.Series(dtype="string"), 
-            "quantity": pd.Series(dtype="int"),
-        }),
+        initial_data,
+        column_config={
+            "ticker": st.column_config.TextColumn("Ticker Symbol", help="e.g. AAPL, TSLA"),
+            "datetime": st.column_config.DateColumn("Acquisition Date"),
+            "quantity": st.column_config.NumberColumn("Shares Owned", min_value=1),
+        },
         num_rows="dynamic",
         use_container_width=True,
-        key="positions_editor_v4",
+        key="positions_editor_v6",
     )
-    update_clicked = st.button("Update portfolio")
-
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
-        tmp.write(editor_df.to_csv(index=False).encode("utf-8"))
-        positions_path = tmp.name
-
-    if update_clicked:
-        try:
-            st.session_state.table = load_data_table(positions_path)
-        except ValueError as e:
-            st.error(str(e))
-            st.stop()
-        except Exception:
-            st.error("Invalid input. Check ticker, date, and quantity.")
-            st.stop()
-# upload csv file
-else:
-    uploaded = st.file_uploader("Upload csv file", type=["csv"], key="csv_upload")
-
-    if uploaded is None:
-        st.info("Upload your csv file to begin.")
-        st.stop()
-
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
-        tmp.write(uploaded.getvalue())
-        positions_path = tmp.name
-
-    st.session_state.table = load_data_table(positions_path)
-    table = st.session_state.table
     
-table = st.session_state.table if use_editor else table
+    col_update, col_save = st.columns(2)
+    
+    if col_update.button("Update Portfolio View"):
+        if editor_df.empty or editor_df.dropna().empty:
+            st.warning("Please enter at least one valid stock position.")
+        else:
+            invalid_tickers = [t for t in editor_df["ticker"].dropna() if not is_valid_ticker(t)]
+            if invalid_tickers:
+                st.error(f"Invalid Tickers Detected: {', '.join(invalid_tickers)}. Please check symbols.")
+            else:
+                try:
+                    with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
+                        tmp.write(editor_df.to_csv(index=False).encode("utf-8"))
+                        path = tmp.name
+                    st.session_state.table = load_data_table(path)
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"Computation Error: {str(e)}")
+
+    if col_save.button("Save Entry to Local Disk"):
+         os.makedirs("config", exist_ok=True)
+         editor_df.to_csv("config/positions.csv", index=False)
+         st.success("Successfully saved to config/positions.csv")
+
+else:
+    st.subheader("Batch File Upload")
+    uploaded = st.file_uploader("Select CSV Portfolio File", type=["csv"], key="csv_loader_main")
+
+    if uploaded is not None:
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
+            tmp.write(uploaded.getvalue())
+            path = tmp.name
+        
+        # Load and check for changes to prevent recursive loop
+        new_table = load_data_table(path)
+        if st.session_state.table is None or not new_table.equals(st.session_state.table):
+            st.session_state.table = new_table
+            st.rerun()
+
+# --- ANALYTICS DISPLAY SECTION ---
+table = st.session_state.table
 
 if table is None or table.empty:
-    st.info("Click 'Update portfolio' to generate results." if use_editor else "Upload a CSV to generate results.")
+    st.info("Awaiting data input... Populate the table or upload a CSV to begin analysis.")
     st.stop()
 
-st.subheader("Overview")
-st.dataframe(table.drop(columns=["datetime"]))
+st.subheader("Performance Inventory")
+# Display the processed data excluding the raw date for a cleaner look
+st.dataframe(table.drop(columns=["Purchase Date"]), use_container_width=True)
 
-if "profit($)" in table.columns:
-    st.subheader("Summary")
-    total_profit = table['profit($)'].sum()
-    total_cost = table['cost($)'].sum()
+# Portfolio Aggregates calculation
+prof = table['Profit ($)'].sum()
+cost = table['Total Cost ($)'].sum()
+ret = (prof / cost * 100) if cost != 0 else 0.0
 
-if total_cost != 0:
-    total_return_pct = (total_profit / total_cost) * 100
-else:
-    total_return_pct = 0.0
+st.subheader("Executive Summary")
+m1, m2, m3 = st.columns(3)
+m1.metric("Unrealized P/L", f"${prof:,.2f}", delta=f"{ret:.2f}%")
+m2.metric("Total Invested Capital", f"${cost:,.2f}")
+m3.metric("Portfolio Growth", f"{ret:.2f}%")
 
-st.write(f"Total profit: {total_profit:,.2f}$")
-st.write(f"Total percentage profit: {total_return_pct:,.2f}%")
-st.write(f"Total cost: {total_cost:,.2f}$")
-
-st.subheader("Performance Graph")
-
-ticker = st.selectbox(
-    "Select stock",
-    sorted(table["ticker"].unique())
+st.download_button(
+    label="Export Portfolio Report (CSV)",
+    data=table.to_csv(index=False).encode("utf-8"),
+    file_name=f"portfolio_analysis_{datetime.now().strftime('%Y%m%d')}.csv",
+    mime="text/csv",
 )
 
-row = table[table["ticker"] == ticker].iloc[0]
-buy_date = row["datetime"]
+# --- VISUALIZATION SECTION ---
+st.subheader("Market Visualization")
+ticker_choice = st.selectbox("Analyze Individual Asset", sorted(table["Stock Ticker"].unique()))
 
-fig = price_history_figure(ticker, buy_date)
-st.pyplot(fig)
+# Locate selection data for charting
+sel_row = table[table["Stock Ticker"] == ticker_choice].iloc[0]
+sel_date = sel_row["Purchase Date"]
 
-# Your existing upload (still supported)
-st.subheader("Upload csv file")
+tab_single, tab_multi, tab_alloc = st.tabs(["Asset History", "Comparison View", "Capital Allocation"])
 
-uploaded = st.file_uploader("Upload csv file", type=["csv"], key="csv_uploader2")
+with tab_single:
+    st.pyplot(price_history_figure(ticker_choice, sel_date))
 
-positions_df = None
+with tab_multi:
+    st.pyplot(multi_stock_history_figure(table))
 
-if uploaded is not None:
-    positions_df = pd.read_csv(uploaded)
-else:
-    try:
-        positions_df = pd.read_csv("config/positions.csv")
-    except FileNotFoundError:
-        st.info("Upload a csv file or create one above and save it to config/positions.csv")
+with tab_alloc:
+    fig_pie, ax_pie = plt.subplots()
+    ax_pie.pie(table["Total Cost ($)"], labels=table["Stock Ticker"], autopct="%1.1f%%", startangle=140)
+    st.pyplot(fig_pie)
 
-if positions_df is not None:
-    st.write("Loaded positions:")
-    st.dataframe(positions_df, use_container_width=True)
