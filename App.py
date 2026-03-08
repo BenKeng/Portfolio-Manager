@@ -142,7 +142,7 @@ tab_single, tab_multi, tab_alloc = st.tabs(["Asset History", "Comparison View", 
 with tab_single:
     st.pyplot(price_history_figure(ticker_choice, sel_date))
     with st.popover("ℹ️ 20-day SMA"):
-        st.markdown("**20-day Simple Moving Average**\n\nAt every point on the chart, this line shows the average closing price across the 20 trading days leading up to that point. As new days are added, the window rolls forward — so it's always the most recent 20 days *at that moment*, not just the final 20 days of the chart.\n\nIt filters out day-to-day noise so you can see the broader trend more clearly. When the price line is above it, the stock is in an upward trend; below it, a downward trend.")
+        st.markdown("**20-day Simple Moving Average**\n\nThe 20-day SMA plots the average closing price of the preceding 20 trading days at each point. It begins after the first 20 trading days and smooths out short-term price fluctuations to reveal the underlying trend.")
 
 with tab_multi:
     st.pyplot(multi_stock_history_figure(table))
