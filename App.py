@@ -154,7 +154,7 @@ with tab_vol:
 with tab_pv:
     st.pyplot(portfolio_value_figure(table))
     with st.popover("ℹ️ Portfolio Value"):
-        st.markdown("**Portfolio Total Value Over Time**\n\nThe combined market value of all your holdings each day, calculated as the closing price × quantity for each stock, summed together. Each stock contributes from its own purchase date onward.")
+        st.markdown("**Portfolio Total Value Over Time**\n\n**Green line** — combined market value of all holdings each day.\n\n**Grey dashed line** — total amount you invested (cost basis). It only steps up when a new stock is purchased, and stays flat otherwise.\n\nThe gap between the two lines shows how much of the growth comes from price changes, not new purchases.")
 
 with tab_pl:
     st.pyplot(profit_loss_figure(table))

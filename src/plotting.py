@@ -83,13 +83,16 @@ def volatility_figure(ticker: str, buy_date) -> plt.Figure:
 
 
 def portfolio_value_figure(table) -> plt.Figure:
-    """Total portfolio value over time, summing each stock from its purchase date."""
+    """Total portfolio value over time, summing each stock from its purchase date.
+    Also plots the cost basis line to separate price gains from new purchases."""
     all_values = []
+    all_costs = []
 
     for _, row in table.iterrows():
         ticker = row["Stock Ticker"]
         qty = row["Quantity"]
         buy_date = row["Purchase Date"]
+        total_cost = row["Total Cost ($)"]
         stock = yf.Ticker(ticker)
         hist = stock.history(start=buy_date, interval="1d")
         if hist.empty:
@@ -98,18 +101,24 @@ def portfolio_value_figure(table) -> plt.Figure:
         value_series.name = ticker
         all_values.append(value_series)
 
+        # Cost basis is constant from purchase date — steps up only when a stock is added
+        cost_series = pd.Series(total_cost, index=hist.index, name=ticker)
+        all_costs.append(cost_series)
+
     fig, ax = plt.subplots()
 
     if all_values:
-        # Sum across stocks per date; NaN (before purchase) treated as 0
-        combined = pd.concat(all_values, axis=1)
-        portfolio_total = combined.sum(axis=1)
-        ax.plot(portfolio_total.index, portfolio_total, linewidth=1.5, color="green")
+        portfolio_total = pd.concat(all_values, axis=1).sum(axis=1)
+        cost_total = pd.concat(all_costs, axis=1).sum(axis=1)
+
+        ax.plot(portfolio_total.index, portfolio_total, linewidth=1.5, color="green", label="Market Value")
+        ax.plot(cost_total.index, cost_total, linewidth=1.5, color="grey", linestyle="--", label="Amount Invested")
         ax.fill_between(portfolio_total.index, portfolio_total, alpha=0.15, color="green")
 
     ax.set_title("Portfolio Total Value Over Time")
     ax.set_xlabel("Date")
     ax.set_ylabel("Total Value ($)")
+    ax.legend()
     fig.autofmt_xdate()
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     fig.tight_layout()
