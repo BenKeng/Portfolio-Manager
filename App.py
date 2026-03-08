@@ -149,4 +149,3 @@ with tab_alloc:
     fig_pie, ax_pie = plt.subplots()
     ax_pie.pie(table["Total Cost ($)"], labels=table["Stock Ticker"], autopct="%1.1f%%", startangle=140)
     st.pyplot(fig_pie)
-

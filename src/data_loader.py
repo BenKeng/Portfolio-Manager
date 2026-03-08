@@ -1,7 +1,9 @@
+import streamlit as st
 import yfinance as yf
 import pandas as pd
 from datetime import datetime
 
+@st.cache_data
 def is_valid_ticker(ticker: str) -> bool:
     """Validator to check if ticker actually exists on Yahoo Finance."""
     stock = yf.Ticker(ticker)
@@ -12,6 +14,7 @@ def is_valid_ticker(ticker: str) -> bool:
     except:
         return False
 
+@st.cache_data
 def fetch_stock_value(ticker: str, bdate: datetime, quant: int) -> tuple:
     """Retrieve position valuations using historical and current data."""
     stock = yf.Ticker(ticker)
