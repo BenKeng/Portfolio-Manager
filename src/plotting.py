@@ -10,8 +10,11 @@ def price_history_figure(ticker: str, buy_date) -> plt.Figure:
     # Fetch history since buy date
     hist = stock.history(start=buy_date, interval="1d")
 
+    sma20 = hist["Close"].rolling(window=20).mean()
+
     fig, ax = plt.subplots()
     ax.plot(hist.index, hist["Close"], linewidth=1.5)
+    ax.plot(hist.index, sma20, linestyle="--", color="orange", linewidth=1.5, label="20-day SMA")
 
     # Red dashed line shows the purchase point
     ax.axvline(x=buy_date, color="red", linestyle="--", linewidth=1, label="Buy date")
