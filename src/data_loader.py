@@ -34,28 +34,3 @@ def fetch_stock_value(ticker: str, bdate: datetime, quant: int) -> tuple:
     buy_price = start_prices.iloc[0]
 
     return current_price * quant, buy_price * quant
-
-
-def load_data_table(positions_path: str) -> pd.DataFrame:
-    """CSV deserializer to convert flat files into analytic dataframes."""
-    df = pd.read_csv(positions_path, parse_dates=["datetime"])
-    results = []
-
-    for _, r in df.iterrows():
-        ticker = r["ticker"]
-        bdate = r["datetime"]
-        qty = int(r["quantity"])
-        c, b = fetch_stock_value(ticker, bdate, qty)
-
-        results.append({
-            "Stock Ticker": ticker.upper(),
-            "Purchase Date": bdate,  
-            "Quantity": qty,
-            "Total Cost ($)": round(b, 2),
-            "Current Value ($)": round(c, 2),
-        })
-
-    return pd.DataFrame(results)
-
-if __name__ == "__main__":
-    load_data_table("config/positions.csv")
