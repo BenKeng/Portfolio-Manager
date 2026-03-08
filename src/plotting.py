@@ -74,7 +74,7 @@ def volatility_figure(ticker: str, buy_date) -> plt.Figure:
     ax.plot(rolling_vol.index, rolling_vol, linewidth=1.5, color="purple")
     ax.set_title(f"{ticker} — 20-Day Rolling Volatility")
     ax.set_xlabel("Date")
-    ax.set_ylabel("Volatility (Std Dev of Daily Returns %)")
+    ax.set_ylabel("Daily Price Swing (%)")
     fig.autofmt_xdate()
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     fig.tight_layout()
