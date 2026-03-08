@@ -179,12 +179,17 @@ sel_date = sel_row["Purchase Date"]
 tab_single, tab_multi, tab_alloc = st.tabs(["Asset History", "Comparison View", "Capital Allocation"])
 
 with tab_single:
-    st.pyplot(price_history_figure(ticker_choice, sel_date))
+    fig_single = price_history_figure(ticker_choice, sel_date)
+    st.pyplot(fig_single)
+    plt.close(fig_single)
 
 with tab_multi:
-    st.pyplot(multi_stock_history_figure(table))
+    fig_multi = multi_stock_history_figure(table)
+    st.pyplot(fig_multi)
+    plt.close(fig_multi)
 
 with tab_alloc:
     fig_pie, ax_pie = plt.subplots()
     ax_pie.pie(table["Total Cost ($)"], labels=table["Stock Ticker"], autopct="%1.1f%%", startangle=140)
     st.pyplot(fig_pie)
+    plt.close(fig_pie)
