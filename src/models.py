@@ -29,6 +29,7 @@ class StockPosition:
         return {
             "Stock Ticker": self.ticker,
             "Purchase Date": self.purchase_date,
+            "Days Owned": (datetime.now() - self.purchase_date).days,
             "Quantity": self.quantity,
             "Cost Per Share ($)": round(self.cost_per_share, 2),
             "Total Cost ($)": round(self.buy_value, 2),
