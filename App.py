@@ -35,7 +35,7 @@ st.title("Investment Portfolio Analytics")
 st.write("Welcome to the Portfolio Manager. Track your equity holdings with live market data.")
 
 # --- DATA INPUT SECTION ---
-use_editor = st.toggle("Enable Manual Table Entry", value=True)
+use_editor = st.toggle("Enable Manual Table Entry", value=False)
 
 if "table" not in st.session_state:
     st.session_state.table = None
@@ -141,6 +141,7 @@ tab_single, tab_multi, tab_alloc = st.tabs(["Asset History", "Comparison View", 
 
 with tab_single:
     st.pyplot(price_history_figure(ticker_choice, sel_date))
+    st.caption("ℹ️ **20-day SMA** (orange dashed line): The average closing price over the last 20 trading days. It smooths out short-term price noise to reveal the underlying trend — when the price is above it the stock is trending up, below it trending down.")
 
 with tab_multi:
     st.pyplot(multi_stock_history_figure(table))
