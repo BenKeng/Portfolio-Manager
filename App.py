@@ -17,7 +17,8 @@ def login():
     if st.session_state.get("login_failed"):
         st.markdown("""
             <style>
-            .stTextInput input[type="password"] {
+            .stTextInput input[type="password"],
+            .stTextInput input[type="password"]:focus {
                 border-color: rgb(255, 75, 75) !important;
                 box-shadow: 0 0 0 1px rgb(255, 75, 75) !important;
             }
@@ -26,7 +27,8 @@ def login():
     else:
         st.markdown("""
             <style>
-            .stTextInput input[type="password"] {
+            .stTextInput input[type="password"],
+            .stTextInput input[type="password"]:focus {
                 border-color: rgba(49, 51, 63, 0.2) !important;
                 box-shadow: none !important;
             }
@@ -136,16 +138,7 @@ if table is None or table.empty:
 
 st.subheader("Performance Inventory")
 table["Purchase Date"] = pd.to_datetime(table["Purchase Date"]).dt.date
-table_height = (len(table) + 1) * 35 + 10
-st.dataframe(table, use_container_width=True, height=table_height, column_config={
-    "Stock Ticker": st.column_config.TextColumn(width="small"),
-    "Quantity": st.column_config.NumberColumn(width="small"),
-    "Cost Per Share ($)": st.column_config.NumberColumn(width="small"),
-    "Total Cost ($)": st.column_config.NumberColumn(width="small"),
-    "Current Value ($)": st.column_config.NumberColumn(width="small"),
-    "Profit ($)": st.column_config.NumberColumn(width="small"),
-    "Percentage Return (%)": st.column_config.NumberColumn(width="small"),
-})
+st.table(table)
 
 # Portfolio Aggregates calculation
 prof = table['Profit ($)'].sum()
