@@ -13,18 +13,45 @@ from src.data_loader import is_valid_ticker
 # --- AUTHENTICATION ---
 def login():
     st.title("Login")
+
+    if st.session_state.get("login_failed"):
+        st.markdown("""
+            <style>
+            .stTextInput input[type="password"] {
+                border-color: rgb(255, 75, 75) !important;
+                box-shadow: 0 0 0 1px rgb(255, 75, 75) !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <style>
+            .stTextInput input[type="password"] {
+                border-color: rgba(49, 51, 63, 0.2) !important;
+                box-shadow: none !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+
     pwd = st.text_input("Password", type="password")
 
     if st.button("Login"):
         # FALLBACK: Allow "admin" password even if secrets.toml is missing
         if pwd == st.secrets.get("PASSWORD", "admin"):
             st.session_state["logged_in"] = True
+            st.session_state["login_failed"] = False
             st.rerun()
         else:
-            st.error("Access Denied: Invalid Password")
+            st.session_state["login_failed"] = True
+            st.rerun()
+
+    if st.session_state.get("login_failed"):
+        st.error("Access Denied: Invalid Password")
 
 if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False 
+    st.session_state["logged_in"] = False
+if "login_failed" not in st.session_state:
+    st.session_state["login_failed"] = False
 
 if not st.session_state["logged_in"]:
     login()
@@ -35,7 +62,7 @@ st.title("Investment Portfolio Analytics")
 st.write("Welcome to the Portfolio Manager. Track your equity holdings with live market data.")
 
 # --- DATA INPUT SECTION ---
-use_editor = st.toggle("Enable Manual Table Entry", value=True)
+use_editor = st.toggle("Enable Manual Table Entry", value=False)
 
 if "table" not in st.session_state:
     st.session_state.table = None
@@ -108,8 +135,7 @@ if table is None or table.empty:
     st.stop()
 
 st.subheader("Performance Inventory")
-# Display the processed data excluding the raw date for a cleaner look
-st.dataframe(table.drop(columns=["Purchase Date"]), use_container_width=True)
+st.dataframe(table, use_container_width=True, height=400)
 
 # Portfolio Aggregates calculation
 prof = table['Profit ($)'].sum()
