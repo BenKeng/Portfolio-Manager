@@ -135,7 +135,17 @@ if table is None or table.empty:
     st.stop()
 
 st.subheader("Performance Inventory")
-st.dataframe(table, use_container_width=True, height=400)
+table["Purchase Date"] = pd.to_datetime(table["Purchase Date"]).dt.date
+table_height = (len(table) + 1) * 35 + 10
+st.dataframe(table, use_container_width=True, height=table_height, column_config={
+    "Stock Ticker": st.column_config.TextColumn(width="small"),
+    "Quantity": st.column_config.NumberColumn(width="small"),
+    "Cost Per Share ($)": st.column_config.NumberColumn(width="small"),
+    "Total Cost ($)": st.column_config.NumberColumn(width="small"),
+    "Current Value ($)": st.column_config.NumberColumn(width="small"),
+    "Profit ($)": st.column_config.NumberColumn(width="small"),
+    "Percentage Return (%)": st.column_config.NumberColumn(width="small"),
+})
 
 # Portfolio Aggregates calculation
 prof = table['Profit ($)'].sum()
