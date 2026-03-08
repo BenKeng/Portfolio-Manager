@@ -135,7 +135,7 @@ def profit_loss_figure(table) -> plt.Figure:
     fig, ax = plt.subplots()
     ax.barh(tickers, profits, color=colors)
     ax.axvline(x=0, color="black", linewidth=0.8)
-    ax.xaxis.set_major_locator(plt.MultipleLocator(50))
+    ax.xaxis.set_major_locator(plt.MultipleLocator(75))
     ax.set_title("Unrealised Profit / Loss by Stock")
     ax.set_xlabel("Profit / Loss ($)")
     fig.tight_layout()
