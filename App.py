@@ -137,8 +137,9 @@ if table is None or table.empty:
     st.stop()
 
 st.subheader("Performance Inventory")
-table["Purchase Date"] = pd.to_datetime(table["Purchase Date"]).dt.date
-display_table = table.rename(columns={
+display_table = table.copy()
+display_table["Purchase Date"] = pd.to_datetime(display_table["Purchase Date"]).dt.date
+display_table = display_table.rename(columns={
     "Purchase Date": "Date",
     "Quantity": "Qty",
     "Cost Per Share ($)": "Cost/Share ($)",
