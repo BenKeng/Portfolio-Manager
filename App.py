@@ -13,47 +13,18 @@ from src.data_loader import is_valid_ticker
 # --- AUTHENTICATION ---
 def login():
     st.title("Login")
-
-    if st.session_state.get("login_failed"):
-        st.markdown("""
-            <style>
-            .stTextInput input[type="password"],
-            .stTextInput input[type="password"]:focus {
-                border-color: rgb(255, 75, 75) !important;
-                box-shadow: 0 0 0 1px rgb(255, 75, 75) !important;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-            <style>
-            .stTextInput input[type="password"],
-            .stTextInput input[type="password"]:focus {
-                border-color: rgba(49, 51, 63, 0.2) !important;
-                box-shadow: none !important;
-            }
-            </style>
-        """, unsafe_allow_html=True)
-
     pwd = st.text_input("Password", type="password")
 
     if st.button("Login"):
         # FALLBACK: Allow "admin" password even if secrets.toml is missing
         if pwd == st.secrets.get("PASSWORD", "admin"):
             st.session_state["logged_in"] = True
-            st.session_state["login_failed"] = False
             st.rerun()
         else:
-            st.session_state["login_failed"] = True
-            st.rerun()
-
-    if st.session_state.get("login_failed"):
-        st.error("Access Denied: Invalid Password")
+            st.error("Access Denied: Invalid Password")
 
 if "logged_in" not in st.session_state:
-    st.session_state["logged_in"] = False
-if "login_failed" not in st.session_state:
-    st.session_state["login_failed"] = False
+    st.session_state["logged_in"] = False 
 
 if not st.session_state["logged_in"]:
     login()
@@ -64,7 +35,7 @@ st.title("Investment Portfolio Analytics")
 st.write("Welcome to the Portfolio Manager. Track your equity holdings with live market data.")
 
 # --- DATA INPUT SECTION ---
-use_editor = st.toggle("Enable Manual Table Entry", value=False)
+use_editor = st.toggle("Enable Manual Table Entry", value=True)
 
 if "table" not in st.session_state:
     st.session_state.table = None
@@ -137,19 +108,8 @@ if table is None or table.empty:
     st.stop()
 
 st.subheader("Performance Inventory")
-display_table = table.copy()
-display_table["Purchase Date"] = pd.to_datetime(display_table["Purchase Date"]).dt.date
-display_table = display_table.rename(columns={
-    "Purchase Date": "Date",
-    "Quantity": "Qty",
-    "Cost Per Share ($)": "Cost/Share ($)",
-    "Total Cost ($)": "Total Cost ($)",
-    "Current Value ($)": "Value ($)",
-    "Profit ($)": "Profit ($)",
-    "Percentage Return (%)": "Return (%)",
-})
-table_height = (len(table) + 1) * 35 + 10
-st.dataframe(display_table, use_container_width=True, height=table_height)
+# Display the processed data excluding the raw date for a cleaner look
+st.dataframe(table.drop(columns=["Purchase Date"]), use_container_width=True)
 
 # Portfolio Aggregates calculation
 prof = table['Profit ($)'].sum()
@@ -180,17 +140,12 @@ sel_date = sel_row["Purchase Date"]
 tab_single, tab_multi, tab_alloc = st.tabs(["Asset History", "Comparison View", "Capital Allocation"])
 
 with tab_single:
-    fig_single = price_history_figure(ticker_choice, sel_date)
-    st.pyplot(fig_single)
-    plt.close(fig_single)
+    st.pyplot(price_history_figure(ticker_choice, sel_date))
 
 with tab_multi:
-    fig_multi = multi_stock_history_figure(table)
-    st.pyplot(fig_multi)
-    plt.close(fig_multi)
+    st.pyplot(multi_stock_history_figure(table))
 
 with tab_alloc:
     fig_pie, ax_pie = plt.subplots()
     ax_pie.pie(table["Total Cost ($)"], labels=table["Stock Ticker"], autopct="%1.1f%%", startangle=140)
     st.pyplot(fig_pie)
-    plt.close(fig_pie)
