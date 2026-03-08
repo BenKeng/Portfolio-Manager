@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import yfinance as yf
+import pandas as pd
 
 
 def price_history_figure(ticker: str, buy_date) -> plt.Figure:
@@ -52,10 +53,81 @@ def multi_stock_history_figure(table) -> plt.Figure:
     ax.set_xlabel("Date")
     ax.set_ylabel("Share Price ($)")
     ax.legend()
-    
+
     # Format X-axis for better date visibility
     fig.autofmt_xdate()
     ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
     fig.tight_layout()
-    
+
+    return fig
+
+
+def volatility_figure(ticker: str, buy_date) -> plt.Figure:
+    """Rolling 20-day volatility (std dev of daily returns) for a single stock."""
+    stock = yf.Ticker(ticker)
+    hist = stock.history(start=buy_date, interval="1d")
+
+    daily_returns = hist["Close"].pct_change() * 100
+    rolling_vol = daily_returns.rolling(window=20).std()
+
+    fig, ax = plt.subplots()
+    ax.plot(rolling_vol.index, rolling_vol, linewidth=1.5, color="purple")
+    ax.set_title(f"{ticker} — 20-Day Rolling Volatility")
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Volatility (Std Dev of Daily Returns %)")
+    fig.autofmt_xdate()
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    fig.tight_layout()
+
+    return fig
+
+
+def portfolio_value_figure(table) -> plt.Figure:
+    """Total portfolio value over time, summing each stock from its purchase date."""
+    all_values = []
+
+    for _, row in table.iterrows():
+        ticker = row["Stock Ticker"]
+        qty = row["Quantity"]
+        buy_date = row["Purchase Date"]
+        stock = yf.Ticker(ticker)
+        hist = stock.history(start=buy_date, interval="1d")
+        if hist.empty:
+            continue
+        value_series = hist["Close"] * qty
+        value_series.name = ticker
+        all_values.append(value_series)
+
+    fig, ax = plt.subplots()
+
+    if all_values:
+        # Sum across stocks per date; NaN (before purchase) treated as 0
+        combined = pd.concat(all_values, axis=1)
+        portfolio_total = combined.sum(axis=1)
+        ax.plot(portfolio_total.index, portfolio_total, linewidth=1.5, color="green")
+        ax.fill_between(portfolio_total.index, portfolio_total, alpha=0.15, color="green")
+
+    ax.set_title("Portfolio Total Value Over Time")
+    ax.set_xlabel("Date")
+    ax.set_ylabel("Total Value ($)")
+    fig.autofmt_xdate()
+    ax.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    fig.tight_layout()
+
+    return fig
+
+
+def profit_loss_figure(table) -> plt.Figure:
+    """Horizontal bar chart of unrealised P&L per stock, green/red by sign."""
+    tickers = table["Stock Ticker"]
+    profits = table["Profit ($)"]
+    colors = ["green" if p >= 0 else "red" for p in profits]
+
+    fig, ax = plt.subplots()
+    ax.barh(tickers, profits, color=colors)
+    ax.axvline(x=0, color="black", linewidth=0.8)
+    ax.set_title("Unrealised Profit / Loss by Stock")
+    ax.set_xlabel("Profit / Loss ($)")
+    fig.tight_layout()
+
     return fig

@@ -5,7 +5,7 @@ import os
 import matplotlib.pyplot as plt
 from datetime import datetime
 from src.analytics import load_data2 as load_data_table
-from src.plotting import price_history_figure, multi_stock_history_figure
+from src.plotting import price_history_figure, multi_stock_history_figure, volatility_figure, portfolio_value_figure, profit_loss_figure
 from src.data_loader import is_valid_ticker
 #https://portfolio-program.streamlit.app/
 
@@ -137,12 +137,29 @@ ticker_choice = st.selectbox("Analyze Individual Asset", sorted(table["Stock Tic
 sel_row = table[table["Stock Ticker"] == ticker_choice].iloc[0]
 sel_date = sel_row["Purchase Date"]
 
-tab_single, tab_multi, tab_alloc = st.tabs(["Asset History", "Comparison View", "Capital Allocation"])
+tab_single, tab_vol, tab_pv, tab_pl, tab_multi, tab_alloc = st.tabs([
+    "Asset History", "Volatility", "Portfolio Value", "P&L", "Comparison View", "Capital Allocation"
+])
 
 with tab_single:
     st.pyplot(price_history_figure(ticker_choice, sel_date))
     with st.popover("ℹ️ 20-day SMA"):
         st.markdown("**20-day Simple Moving Average**\n\nThe 20-day SMA plots the average closing price of the preceding 20 trading days at each point. It begins after the first 20 trading days and smooths out short-term price fluctuations to reveal the underlying trend.")
+
+with tab_vol:
+    st.pyplot(volatility_figure(ticker_choice, sel_date))
+    with st.popover("ℹ️ Volatility"):
+        st.markdown("**20-Day Rolling Volatility**\n\nShows how much the stock's daily price moves have varied over the last 20 trading days. A higher value means bigger swings and more risk. Spikes indicate periods of uncertainty or major news events.")
+
+with tab_pv:
+    st.pyplot(portfolio_value_figure(table))
+    with st.popover("ℹ️ Portfolio Value"):
+        st.markdown("**Portfolio Total Value Over Time**\n\nThe combined market value of all your holdings each day, calculated as the closing price × quantity for each stock, summed together. Each stock contributes from its own purchase date onward.")
+
+with tab_pl:
+    st.pyplot(profit_loss_figure(table))
+    with st.popover("ℹ️ P&L"):
+        st.markdown("**Unrealised Profit / Loss**\n\nShows how much each stock has gained (green) or lost (red) since purchase, in dollars. Values are unrealised — they only become real when you sell.")
 
 with tab_multi:
     st.pyplot(multi_stock_history_figure(table))
