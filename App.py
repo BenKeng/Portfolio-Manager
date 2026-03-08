@@ -116,11 +116,14 @@ prof = table['Profit ($)'].sum()
 cost = table['Total Cost ($)'].sum()
 ret = (prof / cost * 100) if cost != 0 else 0.0
 
+portfolio_age = (datetime.now() - pd.to_datetime(table["Purchase Date"]).min()).days
+
 st.subheader("Executive Summary")
-m1, m2, m3 = st.columns(3)
+m1, m2, m3, m4 = st.columns(4)
 m1.metric("Unrealized P/L", f"${prof:,.2f}", delta=f"{ret:.2f}%")
 m2.metric("Total Invested Capital", f"${cost:,.2f}")
 m3.metric("Portfolio Growth", f"{ret:.2f}%")
+m4.metric("Portfolio Age", f"{portfolio_age} days")
 
 st.download_button(
     label="Export Portfolio Report (CSV)",
