@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import yfinance as yf
-import pandas as pd
 
 
 def price_history_figure(ticker: str, buy_date) -> plt.Figure:
@@ -39,29 +38,19 @@ def multi_stock_history_figure(table) -> plt.Figure:
     This demonstrates algorithmic looping and comparative data visualization.
     """
     fig, ax = plt.subplots()
-    all_returns = []
 
     # Iterate through each unique asset to plot its individual history
     for _, row in table.iterrows():
         ticker = row["Stock Ticker"]
         buy_date = row["Purchase Date"]
         stock = yf.Ticker(ticker)
-        # Fetch data, normalise to % return from first price, and plot
+        # Fetch data and plot line
         hist = stock.history(start=buy_date, interval="1d")
-        if hist.empty:
-            continue
-        pct_return = (hist["Close"] - hist["Close"].iloc[0]) / hist["Close"].iloc[0] * 100
-        ax.plot(pct_return.index, pct_return, label=ticker)
-        all_returns.append(pct_return)
-
-    # Average performance line across all stocks
-    if all_returns:
-        avg = pd.concat(all_returns, axis=1).mean(axis=1)
-        ax.plot(avg.index, avg, color="black", linewidth=2, linestyle="--", label="Portfolio Average")
+        ax.plot(hist.index, hist["Close"], label=ticker)
 
     ax.set_title("Comparative Portfolio Asset Performance")
     ax.set_xlabel("Date")
-    ax.set_ylabel("Return (%)")
+    ax.set_ylabel("Share Price ($)")
     ax.legend()
     
     # Format X-axis for better date visibility
