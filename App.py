@@ -47,7 +47,7 @@ if use_editor:
     # Initialize empty dataframe for the data editor
     initial_data = pd.DataFrame({
         "ticker": pd.Series(dtype="string"),
-        "datetime": pd.Series(dtype="string"),
+        "datetime": pd.Series(dtype="datetime64[ns]"),
         "quantity": pd.Series(dtype="int"),
     })
 
@@ -55,11 +55,7 @@ if use_editor:
         initial_data,
         column_config={
             "ticker": st.column_config.TextColumn("Ticker Symbol", help="e.g. AAPL, TSLA"),
-            "datetime": st.column_config.TextColumn(
-                "Acquisition Date",
-                help="Format: YYYY-MM-DD (e.g. 2017-06-15)",
-                validate=r"^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$",
-            ),
+            "datetime": st.column_config.DateColumn("Acquisition Date"),
             "quantity": st.column_config.NumberColumn("Shares Owned", min_value=1),
         },
         num_rows="dynamic",
