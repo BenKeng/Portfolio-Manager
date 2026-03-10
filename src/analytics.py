@@ -20,7 +20,7 @@ def build_portfolio_from_csv(positions_path: str) -> Portfolio:
     return portfolio
 
 # Legacy compatibility wrapper
-def load_data2(positions: str) -> pd.DataFrame:
-    """Wrapper to maintain compatibility with view layer during refactor."""
+def load_data2(positions: str) -> tuple:
+    """Returns (DataFrame, Portfolio) so callers can use Portfolio methods directly."""
     pf = build_portfolio_from_csv(positions)
-    return pf.get_summary_df()
+    return pf.get_summary_df(), pf

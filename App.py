@@ -39,6 +39,8 @@ use_editor = st.toggle("Enable Manual Table Entry", value=False)
 
 if "table" not in st.session_state:
     st.session_state.table = None
+if "portfolio" not in st.session_state:
+    st.session_state.portfolio = None
 
 if use_editor:
     st.subheader("Inventory Management")
@@ -75,7 +77,7 @@ if use_editor:
                     with tempfile.NamedTemporaryFile(delete=False, suffix=".csv") as tmp:
                         tmp.write(editor_df.to_csv(index=False).encode("utf-8"))
                         path = tmp.name
-                    st.session_state.table = load_data_table(path)
+                    st.session_state.table, st.session_state.portfolio = load_data_table(path)
                     st.rerun()
                 except Exception as e:
                     st.error(f"Computation Error: {str(e)}")
@@ -95,9 +97,10 @@ else:
             path = tmp.name
         
         # Load and check for changes to prevent recursive loop
-        new_table = load_data_table(path)
+        new_table, new_portfolio = load_data_table(path)
         if st.session_state.table is None or not new_table.equals(st.session_state.table):
             st.session_state.table = new_table
+            st.session_state.portfolio = new_portfolio
             st.rerun()
 
 # --- ANALYTICS DISPLAY SECTION ---
@@ -112,9 +115,7 @@ st.subheader("Performance Inventory")
 st.dataframe(table.drop(columns=["Purchase Date"]), use_container_width=True)
 
 # Portfolio Aggregates calculation
-prof = table['Profit ($)'].sum()
-cost = table['Total Cost ($)'].sum()
-ret = (prof / cost * 100) if cost != 0 else 0.0
+prof, cost, ret = st.session_state.portfolio.get_totals()
 
 portfolio_age = (datetime.now() - pd.to_datetime(table["Purchase Date"]).min()).days
 
